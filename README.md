@@ -40,3 +40,49 @@ https://github.com/spencertipping/jquery.fix.clone
   };
 }) (jQuery.fn.clone);
 ```
+* Ajax call without JQuery
+```javascript
+var NativeAjax = function() {
+    /* .... */
+    XMLHttpReqFactory : [
+        function() { return new XMLHttpRequest()},
+        function() { return new ActiveXObject("Msxml2.XMLHTTP")},
+        function() { return new ActiveXObject("Msxml3.XMLHTTP")},
+        function() { return new ActiveXObject("Microsoft.XMLHTTP")},
+        function() { return new ActiveXObject("Msxml2.XMLHTTP.3.0")}
+    ],
+    XMLHttpReqInst : function() {
+        var xhr = false;
+        for (var i = 0, sz = this.XMLHttpReqFactory.length; i < sz; ++i) {
+            try {
+                xhr = this.XMLHttpReqFactory[i]();
+            }
+            catch(e) {
+                continue;
+            }
+            break;
+        }
+        return xhr;
+    },
+    sendXMLHttpReq: function (url, async, callback, post_data) {
+        var xhr = this.XMLHttpReqInst();
+        if (!xhr) { return; }
+        if (typeof (async) === 'undefined') async = true;
+        post_data = post_data || null;
+        var method = post_data ? 'POST' : 'GET';
+        xhr.open(method, url, async);
+        if (method === 'POST') {
+            xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+        }
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState != 4) return;
+            if (xhr.status != 200 && xhr.status != 304) {
+                console.log('error occured, error code [' + xhr.status + ']');
+                return;
+            }
+            callback(xhr.responseText);
+        }
+        xhr.send(post_data);
+    }
+};
+```
